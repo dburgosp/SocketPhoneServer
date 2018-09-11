@@ -35,9 +35,9 @@ The server info is formatted into a JSON document with the following optional ke
         "psc": mTelephonyManager.getAllCellInfo()[n].getCellIdentity.getPsc(),
         "networkId": mTelephonyManager.getCellLocation()[n].getNetworkId(),
         "systemId": mTelephonyManager.getCellLocation()[n].getSystemId()
-      },
-      ...
-    }
+      }
+    },
+    ...
   ]
 }
 ```
