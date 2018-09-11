@@ -15,12 +15,25 @@ public class MainActivity extends Activity {
         mInfoIpTextView = findViewById(R.id.infoip);
         mMessageTextView = findViewById(R.id.msg);
         mServer = new Server(this);
-        mInfoIpTextView.setText(mServer.getIpAddress() + ":" + mServer.getPort());
+        String text = mServer.getIpAddress() + ":" + mServer.getPort();
+        mInfoIpTextView.setText(text);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         mServer.onDestroy();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("text", mMessageTextView.getText().toString());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        mMessageTextView.setText(savedInstanceState.getString("text"));
     }
 }

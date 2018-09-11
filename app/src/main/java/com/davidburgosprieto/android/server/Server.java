@@ -1,6 +1,7 @@
 package com.davidburgosprieto.android.server;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.os.Build;
 import android.telephony.CellIdentityCdma;
 import android.telephony.CellIdentityGsm;
@@ -47,9 +48,11 @@ public class Server {
     private String mMessage = "";
     private TelephonyManager mTelephonyManager;
     private ServiceState mServiceState;
+    private Resources mResources;
 
-    public Server(MainActivity activity) {
+    Server(MainActivity activity) {
         mActivity = activity;
+        mResources = mActivity.getBaseContext().getResources();
         Thread socketServerThread = new Thread(new SocketServerThread());
         socketServerThread.start();
 
@@ -62,8 +65,7 @@ public class Server {
                 try {
                     mServiceState = mTelephonyManager.getServiceState();
                 } catch (SecurityException e) {
-                    Log.e(TAG, mActivity.getBaseContext().getResources().getString(
-                            R.string.get_service_state_error) + e);
+                    Log.e(TAG, mResources.getString(R.string.get_service_state_error) + e);
                 }
             }
 
@@ -88,8 +90,7 @@ public class Server {
             try {
                 mServerSocket.close();
             } catch (IOException e) {
-                Log.e(TAG, mActivity.getBaseContext().getResources().getString(
-                        R.string.on_destroy_error) + e);
+                Log.e(TAG, mResources.getString(R.string.on_destroy_error) + e);
             }
         }
     }
@@ -105,10 +106,8 @@ public class Server {
                 while (true) {
                     final Socket socket = mServerSocket.accept();
                     count++;
-                    mMessage += "#" + count + " " +
-                            mActivity.getBaseContext().getResources().getString(R.string.from)
-                            + " " + socket.getInetAddress() + ":"
-                            + socket.getPort() + "\n";
+                    mMessage += "#" + count + " " + mResources.getString(R.string.from) + " " +
+                            socket.getInetAddress() + ":" + socket.getPort() + "\n";
 
                     mActivity.runOnUiThread(new Runnable() {
                         @Override
@@ -123,8 +122,8 @@ public class Server {
                     socketServerReplyThread.run();
                 }
             } catch (IOException e) {
-                Log.e(TAG, mActivity.getBaseContext().getResources().getString(
-                        R.string.get_socket_server_thread_run_error) + e);
+                Log.e(TAG, mResources.getString(R.string.get_socket_server_thread_run_error)
+                        + " " + e);
             }
         }
     }
@@ -141,8 +140,7 @@ public class Server {
         @Override
         public void run() {
             final OutputStream outputStream;
-            String msgReply = mActivity.getBaseContext().getResources().getString(R.string.hello)
-                    + " " + cnt;
+            String msgReply = mResources.getString(R.string.hello) + " " + cnt;
 
             try {
                 outputStream = hostThreadSocket.getOutputStream();
@@ -150,20 +148,17 @@ public class Server {
                 printStream.print(getRadio());
                 printStream.close();
 
-                mMessage += mActivity.getBaseContext().getResources().getString(R.string.reply) +
-                        msgReply + "\n\n";
+                mMessage += mResources.getString(R.string.reply) + " " + msgReply + "\n\n";
                 mActivity.runOnUiThread(new Runnable() {
-
                     @Override
                     public void run() {
                         mActivity.mMessageTextView.setText(mMessage);
                     }
                 });
             } catch (IOException e) {
-                Log.e(TAG, mActivity.getBaseContext().getResources().getString(
-                        R.string.get_socket_server_reply_thread_run_error) + e);
-                mMessage += mActivity.getBaseContext().getResources().getString(R.string.wrong) +
-                        e.toString() + "\n";
+                Log.e(TAG, mResources.getString(
+                        R.string.get_socket_server_reply_thread_run_error) + " " + e);
+                mMessage += mResources.getString(R.string.wrong) + " " + e.toString() + "\n";
             }
 
             mActivity.runOnUiThread(new Runnable() {
@@ -178,29 +173,25 @@ public class Server {
     public String getIpAddress() {
         String ip = "";
         try {
-            Enumeration<NetworkInterface> enumNetworkInterfaces = NetworkInterface
-                    .getNetworkInterfaces();
+            Enumeration<NetworkInterface> enumNetworkInterfaces =
+                    NetworkInterface.getNetworkInterfaces();
             while (enumNetworkInterfaces.hasMoreElements()) {
-                NetworkInterface networkInterface = enumNetworkInterfaces
-                        .nextElement();
-                Enumeration<InetAddress> enumInetAddress = networkInterface
-                        .getInetAddresses();
+                NetworkInterface networkInterface = enumNetworkInterfaces.nextElement();
+                Enumeration<InetAddress> enumInetAddress = networkInterface.getInetAddresses();
                 while (enumInetAddress.hasMoreElements()) {
-                    InetAddress inetAddress = enumInetAddress
-                            .nextElement();
-
+                    InetAddress inetAddress = enumInetAddress.nextElement();
                     if (inetAddress.isSiteLocalAddress()) {
-                        ip += mActivity.getBaseContext().getResources().getString(R.string.running)
-                                + inetAddress.getHostAddress();
+                        StringBuilder stringBuilder = new StringBuilder();
+                        stringBuilder.append(mResources.getString(R.string.running));
+                        stringBuilder.append(" ");
+                        stringBuilder.append(inetAddress.getHostAddress());
+                        ip = stringBuilder.toString();
                     }
                 }
             }
-
         } catch (SocketException e) {
-            Log.e(TAG, mActivity.getBaseContext().getResources().getString(
-                    R.string.get_ip_address_error) + e);
-            ip += mActivity.getBaseContext().getResources().getString(R.string.wrong) +
-                    e.toString() + "\n";
+            Log.e(TAG, mResources.getString(R.string.get_ip_address_error) + " " + e);
+            ip += mResources.getString(R.string.wrong) + " " + e.toString() + "\n";
         }
         return ip;
     }
@@ -211,89 +202,108 @@ public class Server {
         if (mTelephonyManager != null) {
             try {
                 // Get data from TelephonyManager.
-                radioJSONObject.put("IMEI", mTelephonyManager.getDeviceId());
-                radioJSONObject.put("softwareVersion", mTelephonyManager.getDeviceSoftwareVersion());
+                radioJSONObject.put(mResources.getString(R.string.json_key_imei),
+                        mTelephonyManager.getDeviceId());
+                radioJSONObject.put(mResources.getString(R.string.json_key_software_version),
+                        mTelephonyManager.getDeviceSoftwareVersion());
 
                 switch (mTelephonyManager.getPhoneType()) {
                     case (TelephonyManager.PHONE_TYPE_CDMA):
-                        radioJSONObject.put("phoneType", "CDMA");
+                        radioJSONObject.put(mResources.getString(R.string.json_key_phone_type),
+                                mResources.getString(R.string.json_value_cdma));
                         break;
                     case (TelephonyManager.PHONE_TYPE_GSM):
-                        radioJSONObject.put("phoneType", "GSM");
+                        radioJSONObject.put(mResources.getString(R.string.json_key_phone_type),
+                                mResources.getString(R.string.json_value_gsm));
                         break;
                     case (TelephonyManager.PHONE_TYPE_NONE):
-                        radioJSONObject.put("phoneType", "NONE");
+                        radioJSONObject.put(mResources.getString(R.string.json_key_phone_type),
+                                mResources.getString(R.string.json_value_none));
                         break;
                     case (TelephonyManager.PHONE_TYPE_SIP):
-                        radioJSONObject.put("phoneType", "SIP");
+                        radioJSONObject.put(mResources.getString(R.string.json_key_phone_type),
+                                mResources.getString(R.string.json_value_sip));
                         break;
                     default:
-                        radioJSONObject.put("phoneType", "UNKNOWN");
+                        radioJSONObject.put(mResources.getString(R.string.json_key_phone_type),
+                                mResources.getString(R.string.json_value_unknown));
                 }
 
-                if (mServiceState != null && mServiceState.getState() != ServiceState.STATE_IN_SERVICE) {
+                if (mServiceState != null &&
+                        mServiceState.getState() != ServiceState.STATE_IN_SERVICE) {
                     // Phone is not in service. Get some parameters from ServiceState.
                     switch (mServiceState.getState()) {
                         case (ServiceState.STATE_EMERGENCY_ONLY):
-                            radioJSONObject.put("serviceState", "EMERGENCY ONLY");
+                            radioJSONObject.put(mResources.getString(R.string.json_key_service_state),
+                                    mResources.getString(R.string.json_value_emergency_only));
                             break;
                         case (ServiceState.STATE_OUT_OF_SERVICE):
-                            radioJSONObject.put("serviceState", "OUT OF SERVICE");
+                            radioJSONObject.put(mResources.getString(R.string.json_key_service_state),
+                                    mResources.getString(R.string.json_value_out_of_service));
                             break;
                         case (ServiceState.STATE_POWER_OFF):
-                            radioJSONObject.put("serviceState", "POWER OFF");
+                            radioJSONObject.put(mResources.getString(R.string.json_key_service_state),
+                                    mResources.getString(R.string.json_value_power_off));
                             break;
                         default:
-                            radioJSONObject.put("serviceState", "UNKNOWN");
+                            radioJSONObject.put(mResources.getString(R.string.json_key_service_state),
+                                    mResources.getString(R.string.json_value_unknown));
                     }
-                    radioJSONObject.put("operatorAlphaLong", mServiceState.getOperatorAlphaLong());
-                    radioJSONObject.put("roaming", mServiceState.getRoaming());
+                    radioJSONObject.put(mResources.getString(R.string.json_key_operator_alpha_long),
+                            mServiceState.getOperatorAlphaLong());
+                    radioJSONObject.put(mResources.getString(R.string.json_key_roaming),
+                            mServiceState.getRoaming());
                 }
 
                 String simState;
                 switch (mTelephonyManager.getSimState()) {
                     case (TelephonyManager.SIM_STATE_ABSENT):
-                        simState = "ABSENT";
+                        simState = mResources.getString(R.string.json_value_absent);
                         break;
                     case (TelephonyManager.SIM_STATE_CARD_IO_ERROR):
-                        simState = "CARD IO ERROR";
+                        simState = mResources.getString(R.string.json_value_card_io_error);
                         break;
                     case (TelephonyManager.SIM_STATE_CARD_RESTRICTED):
-                        simState = "CARD RESTRICTED";
+                        simState = mResources.getString(R.string.json_value_card_restricted);
                         break;
                     case (TelephonyManager.SIM_STATE_NETWORK_LOCKED):
-                        simState = "NETWORK LOCKED";
+                        simState = mResources.getString(R.string.json_value_network_locked);
                         break;
                     case (TelephonyManager.SIM_STATE_NOT_READY):
-                        simState = "NOT READY";
+                        simState = mResources.getString(R.string.json_value_not_ready);
                         break;
                     case (TelephonyManager.SIM_STATE_PERM_DISABLED):
-                        simState = "PERM DISABLED";
+                        simState = mResources.getString(R.string.json_value_perm_disabled);
                         break;
                     case (TelephonyManager.SIM_STATE_PIN_REQUIRED):
-                        simState = "PIN REQUIRED";
+                        simState = mResources.getString(R.string.json_value_pin_required);
                         break;
                     case (TelephonyManager.SIM_STATE_PUK_REQUIRED):
-                        simState = "PUK REQUIRED";
+                        simState = mResources.getString(R.string.json_value_puk_required);
                         break;
                     case (TelephonyManager.SIM_STATE_READY):
-                        simState = "READY";
+                        simState = mResources.getString(R.string.json_value_ready);
                         break;
                     case (TelephonyManager.SIM_STATE_UNKNOWN):
                     default:
-                        simState = "UNKNOWN";
+                        simState = mResources.getString(R.string.json_value_unknown);
                 }
-                radioJSONObject.put("simState", simState);
+                radioJSONObject.put(mResources.getString(R.string.json_key_sim_state), simState);
 
-                if (!simState.equals("ABSENT") && !simState.equals("CARD IO ERROR") &&
-                        !simState.equals("UNKNOWN")) {
+                if (!simState.equals(mResources.getString(R.string.json_value_absent)) &&
+                        !simState.equals(mResources.getString(R.string.json_value_card_io_error)) &&
+                        !simState.equals(mResources.getString(R.string.json_value_unknown))) {
                     // Get SIM and network data.
-                    radioJSONObject.put("simSerialNumber", mTelephonyManager.getSimSerialNumber());
-                    radioJSONObject.put("simOperatorName", mTelephonyManager.getSimOperatorName());
-                    radioJSONObject.put("networkOperatorName", mTelephonyManager.getNetworkOperatorName());
-                    radioJSONObject.put("line1Number", mTelephonyManager.getLine1Number());
+                    radioJSONObject.put(mResources.getString(R.string.json_key_sim_serial_number),
+                            mTelephonyManager.getSimSerialNumber());
+                    radioJSONObject.put(mResources.getString(R.string.json_key_sim_operator_name),
+                            mTelephonyManager.getSimOperatorName());
+                    radioJSONObject.put(mResources.getString(R.string.json_key_network_operator_name),
+                            mTelephonyManager.getNetworkOperatorName());
+                    radioJSONObject.put(mResources.getString(R.string.json_key_line_1_number),
+                            mTelephonyManager.getLine1Number());
 
-                    if (simState.equals("READY")) {
+                    if (simState.equals(mResources.getString(R.string.json_value_ready))) {
                         // Get cells info, if available.
                         JSONArray cellJSONArray = new JSONArray();
                         List<CellInfo> cellInfoList = mTelephonyManager.getAllCellInfo();
@@ -308,73 +318,95 @@ public class Server {
                                 if (cellInfo instanceof CellInfoGsm) {
                                     // Cell type.
                                     isValid = true;
-                                    type = "GSM";
+                                    type = mResources.getString(R.string.json_value_gsm);
 
                                     // Signal strength.
                                     CellSignalStrengthGsm cellSignalStrength =
                                             ((CellInfoGsm) cellInfo).getCellSignalStrength();
-                                    strengthJSONObject.put("dbm", cellSignalStrength.getDbm());
+                                    strengthJSONObject.put(mResources.getString(R.string.json_key_dbm),
+                                            cellSignalStrength.getDbm());
 
                                     // Cell Identity.
                                     CellIdentityGsm cellIdentity =
                                             ((CellInfoGsm) cellInfo).getCellIdentity();
-                                    identityJSONObject.put("cid", cellIdentity.getCid());
-                                    identityJSONObject.put("lac", cellIdentity.getLac());
-                                    identityJSONObject.put("mccString", cellIdentity.getMccString());
-                                    identityJSONObject.put("mncString", cellIdentity.getMncString());
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_cid),
+                                            cellIdentity.getCid());
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_lac),
+                                            cellIdentity.getLac());
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_mcc_string),
+                                            cellIdentity.getMccString());
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_mnc_string),
+                                            cellIdentity.getMncString());
 
                                 } else if (cellInfo instanceof CellInfoCdma) {
                                     // Cell type.
                                     isValid = true;
-                                    type = "CDMA";
+                                    type = mResources.getString(R.string.json_value_cdma);
 
                                     // Signal strength.
                                     CellSignalStrengthCdma cellSignalStrength =
                                             ((CellInfoCdma) cellInfo).getCellSignalStrength();
-                                    strengthJSONObject.put("dbm", cellSignalStrength.getDbm());
+                                    strengthJSONObject.put(mResources.getString(R.string.json_key_dbm),
+                                            cellSignalStrength.getDbm());
 
                                     // Cell Identity.
                                     CellIdentityCdma cellIdentity =
                                             ((CellInfoCdma) cellInfo).getCellIdentity();
-                                    identityJSONObject.put("cid", cellIdentity.getBasestationId());
-                                    identityJSONObject.put("lac", cellIdentity.getNetworkId());
-                                    identityJSONObject.put("mcc", cellIdentity.getSystemId());
-                                    identityJSONObject.put("sid", cellIdentity.getSystemId());
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_cid),
+                                            cellIdentity.getBasestationId());
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_lac),
+                                            cellIdentity.getNetworkId());
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_mcc),
+                                            cellIdentity.getSystemId());
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_sid),
+                                            cellIdentity.getSystemId());
                                 } else if (cellInfo instanceof CellInfoLte) {
                                     // Cell type.
                                     isValid = true;
-                                    type = "LTE";
+                                    type = mResources.getString(R.string.json_value_lte);
 
                                     // Signal strength.
                                     CellSignalStrengthLte cellSignalStrength =
                                             ((CellInfoLte) cellInfo).getCellSignalStrength();
-                                    strengthJSONObject.put("dbm", cellSignalStrength.getDbm());
-                                    strengthJSONObject.put("timingAdvance", cellSignalStrength.getTimingAdvance());
+                                    strengthJSONObject.put(mResources.getString(R.string.json_key_dbm),
+                                            cellSignalStrength.getDbm());
+                                    strengthJSONObject.put(
+                                            mResources.getString(R.string.json_key_timing_advance),
+                                            cellSignalStrength.getTimingAdvance());
 
                                     // Cell Identity.
                                     CellIdentityLte cellIdentity =
                                             ((CellInfoLte) cellInfo).getCellIdentity();
-                                    identityJSONObject.put("mccString", cellIdentity.getMccString());
-                                    identityJSONObject.put("mncString", cellIdentity.getMncString());
-                                    identityJSONObject.put("ci", cellIdentity.getCi());
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_mcc_string),
+                                            cellIdentity.getMccString());
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_mnc_string),
+                                            cellIdentity.getMncString());
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_ci),
+                                            cellIdentity.getCi());
                                 } else if (cellInfo instanceof CellInfoWcdma) {
                                     // Cell type.
                                     isValid = true;
-                                    type = "WCDMA";
+                                    type = mResources.getString(R.string.json_value_wcdma);
 
                                     // Signal strength.
                                     CellSignalStrengthWcdma cellSignalStrength =
                                             ((CellInfoWcdma) cellInfo).getCellSignalStrength();
-                                    strengthJSONObject.put("dbm", cellSignalStrength.getDbm());
+                                    strengthJSONObject.put(mResources.getString(R.string.json_key_dbm),
+                                            cellSignalStrength.getDbm());
 
                                     // Cell Identity.
                                     CellIdentityWcdma cellIdentity =
                                             ((CellInfoWcdma) cellInfo).getCellIdentity();
-                                    identityJSONObject.put("lac", cellIdentity.getLac());
-                                    identityJSONObject.put("mccString", cellIdentity.getMccString());
-                                    identityJSONObject.put("mncString", cellIdentity.getMncString());
-                                    identityJSONObject.put("cid", cellIdentity.getCid());
-                                    identityJSONObject.put("psc", cellIdentity.getPsc());
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_lac),
+                                            cellIdentity.getLac());
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_mcc_string),
+                                            cellIdentity.getMccString());
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_mnc_string),
+                                            cellIdentity.getMncString());
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_cid),
+                                            cellIdentity.getCid());
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_psc),
+                                            cellIdentity.getPsc());
                                 } else {
                                     // Unknown type of cell signal.
                                     isValid = false;
@@ -383,10 +415,13 @@ public class Server {
                                 if (isValid) {
                                     // Add the JSON info for the current cell.
                                     JSONObject cellJSONObject = new JSONObject();
-                                    cellJSONObject.put("type", type);
-                                    cellJSONObject.put("isRegistered", cellInfo.isRegistered());
-                                    cellJSONObject.put("strength", strengthJSONObject);
-                                    cellJSONObject.put("identity", identityJSONObject);
+                                    cellJSONObject.put(mResources.getString(R.string.json_key_type), type);
+                                    cellJSONObject.put(mResources.getString(R.string.json_key_is_registered),
+                                            cellInfo.isRegistered());
+                                    cellJSONObject.put(mResources.getString(R.string.json_key_strength),
+                                            strengthJSONObject);
+                                    cellJSONObject.put(mResources.getString(R.string.json_key_identity),
+                                            identityJSONObject);
                                     cellJSONArray.put(cellJSONObject);
                                 }
                             }
@@ -401,24 +436,24 @@ public class Server {
                                 if (cellLocation instanceof GsmCellLocation) {
                                     // Cell type.
                                     isValid = true;
-                                    type = "GSM";
+                                    type = mResources.getString(R.string.json_value_gsm);
 
                                     // Cell Identity.
-                                    identityJSONObject.put("cid",
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_cid),
                                             ((GsmCellLocation) cellLocation).getCid());
-                                    identityJSONObject.put("lac",
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_lac),
                                             ((GsmCellLocation) cellLocation).getLac());
-                                    identityJSONObject.put("psc",
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_psc),
                                             ((GsmCellLocation) cellLocation).getPsc());
                                 } else if (cellLocation instanceof CdmaCellLocation) {
                                     // Cell type.
                                     isValid = true;
-                                    type = "CDMA";
+                                    type = mResources.getString(R.string.json_value_cdma);
 
                                     // Cell Identity.
-                                    identityJSONObject.put("networkId",
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_network_id),
                                             ((CdmaCellLocation) cellLocation).getNetworkId());
-                                    identityJSONObject.put("systemId",
+                                    identityJSONObject.put(mResources.getString(R.string.json_key_system_id),
                                             ((CdmaCellLocation) cellLocation).getSystemId());
                                 } else {
                                     // Unknown type of cell signal.
@@ -428,21 +463,23 @@ public class Server {
                                 if (isValid) {
                                     // Add the JSON info for the current cell.
                                     JSONObject cellJSONObject = new JSONObject();
-                                    cellJSONObject.put("type", type);
-                                    cellJSONObject.put("identity", identityJSONObject);
+                                    cellJSONObject.put(mResources.getString(R.string.json_key_type), type);
+                                    cellJSONObject.put(mResources.getString(R.string.json_key_identity),
+                                            identityJSONObject);
                                     cellJSONArray.put(cellJSONObject);
                                 }
                             }
                         }
 
                         // Add the cells array to the main JSON object.
-                        radioJSONObject.put("cells", cellJSONArray);
+                        radioJSONObject.put(mResources.getString(R.string.json_key_cells), cellJSONArray);
                     }
                 }
 
                 // Get the ISO country code equivalent of the MCC (Mobile Country Code) of the
                 // current registered operator, or nearby cell information if not registered.
-                radioJSONObject.put("networkCountryIso", mTelephonyManager.getNetworkCountryIso());
+                radioJSONObject.put(mResources.getString(R.string.json_key_network_country_iso),
+                        mTelephonyManager.getNetworkCountryIso());
             } catch (SecurityException | JSONException e) {
                 e.printStackTrace();
             }

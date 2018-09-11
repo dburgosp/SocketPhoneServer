@@ -11,4 +11,56 @@
     <string name="wrong">Something wrong! </string>
     <string name="running">Server running at: </string>
     <string name="radio">Radio parameters sent to client</string>
+
+    <!-- JSON keys -->
+    <string name="json_key_imei">imei</string>
+    <string name="json_key_software_version">softwareVersion</string>
+    <string name="json_key_phone_type">phoneType</string>
+    <string name="json_key_service_state">serviceState</string>
+    <string name="json_key_operator_alpha_long">operatorAlphaLong</string>
+    <string name="json_key_sim_state">simState</string>
+    <string name="json_key_sim_serial_number">simSerialNumber</string>
+    <string name="json_key_sim_operator_name">simOperatorName</string>
+    <string name="json_key_network_operator_name">networkOperatorName</string>
+    <string name="json_key_line_1_number">line1Number</string>
+    <string name="json_key_dbm">dbm</string>
+    <string name="json_key_cid">cid</string>
+    <string name="json_key_lac">lac</string>
+    <string name="json_key_sid">sid</string>
+    <string name="json_key_mcc_string">mccString</string>
+    <string name="json_key_mnc_string">mncString</string>
+    <string name="json_key_mcc">mcc</string>
+    <string name="json_key_timing_advance">timingAdvance</string>
+    <string name="json_key_ci">ci</string>
+    <string name="json_key_psc">psc</string>
+    <string name="json_key_type">type</string>
+    <string name="json_key_is_registered">isRegistered</string>
+    <string name="json_key_strength">strength</string>
+    <string name="json_key_identity">identity</string>
+    <string name="json_key_network_id">networkId</string>
+    <string name="json_key_system_id">systemId</string>
+    <string name="json_key_cells">cells</string>
+    <string name="json_key_network_country_iso">networkCountryIso</string>
+    <string name="json_key_roaming">roaming</string>
+
+    <!-- JSON values -->
+    <string name="json_value_cdma">CDMA</string>
+    <string name="json_value_gsm">GSM</string>
+    <string name="json_value_none">NONE</string>
+    <string name="json_value_sip">SIP</string>
+    <string name="json_value_lte">LTE</string>
+    <string name="json_value_wcdma">WCDMA</string>
+    <string name="json_value_unknown">UNKNOWN</string>
+    <string name="json_value_emergency_only">EMERGENCY ONLY</string>
+    <string name="json_value_out_of_service">OUT OF SERVICE</string>
+    <string name="json_value_power_off">POWER OFF</string>
+    <string name="json_value_absent">ABSENT</string>
+    <string name="json_value_card_io_error">CARD IO ERROR</string>
+    <string name="json_value_card_restricted">CARD RESTRICTED</string>
+    <string name="json_value_network_locked">NETWORK LOCKED</string>
+    <string name="json_value_not_ready">NOT READY</string>
+    <string name="json_value_perm_disabled">PERM DISABLED</string>
+    <string name="json_value_pin_required">PIN REQUIRED</string>
+    <string name="json_value_puk_required">PUK REQUIRED</string>
+    <string name="json_value_ready">READY</string>
 </resources>
