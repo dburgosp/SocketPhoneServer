@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Server</string>
+    <string name="get_service_state_error">getServiceState error: </string>
+    <string name="on_destroy_error">onDestroy error: </string>
+    <string name="get_socket_server_thread_run_error">SocketServerThread.run error: </string>
+    <string name="get_socket_server_reply_thread_run_error">SocketServerReplyThread.run error: </string>
+    <string name="get_ip_address_error">getIpAddress error: </string>
+    <string name="from">from</string>
+    <string name="hello">Hello from Server, you are #</string>
+    <string name="reply">Replayed: </string>
+    <string name="wrong">Something wrong! </string>
+    <string name="running">Server running at: </string>
+    <string name="radio">Radio parameters sent to client</string>
+</resources>
